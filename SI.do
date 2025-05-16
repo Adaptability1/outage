@@ -85,6 +85,29 @@ reghdfe lnOutage_duration Strong_wind Rainstorm Cold_wave Geo_hazard Wildfire He
 est store m4
 esttab m1 m2 m3 m4 using tables5.csv, scalars(r2 r2_w r2_o r2_b)  pr2  se replace nogap  b(%9.4f) star(* 0.10 ** 0.05 *** 0.01)
 ************************Table S6
+use data_natural_heckman.dta,clear
+reghdfe lnOutage_frequency festival weekend , absorb(County#YM) vce(cluster County) resid
+qui predict e1, r
+heckman e1 Natural_disaster , select (Natural_disaster polit) two
+est store m1
+*****
+reghdfe lnOutage_duration festival weekend , absorb(County#YM) vce(cluster County) resid
+qui predict e2, r
+heckman e2 Natural_disaster , select (Natural_disaster polit) two
+est store m2
+drop e1
+reghdfe lnOutage_frequency festival weekend , absorb(County#YM) vce(cluster County) resid
+qui predict e1, r
+heckman e1 Natural_disaster  Natural_disaster_poverty poverty , select (Natural_disaster polit  Natural_disaster_poverty poverty) two
+est store m3
+*****
+drop e2
+reghdfe lnOutage_duration festival weekend , absorb(County#YM) vce(cluster County) resid
+qui predict e2, r
+heckman e2 Natural_disaster  Natural_disaster_poverty poverty, select (Natural_disaster polit  Natural_disaster_poverty poverty ) two
+est store m4
+esttab m1 m2 m3 m4 using robustness_heckman.csv, scalars(r2 r2_w r2_o r2_b)  pr2  se replace nogap  b(%9.4f) star(* 0.10 ** 0.05 *** 0.01)
+************************Table S7
 use "data_natural.dta",clear
 foreach var of varlist  Outage_frequency Outage_frequency_unplanned  Outage_frequency_planned Outage_frequency_0_6h Outage_frequency_6h {
 gen ln`var'=ln((`var'+1)/pop)
@@ -117,8 +140,8 @@ reghdfe lnOutage_frequency Natural_disaster festival weekend  if group==0,  abso
 est store m9
 reghdfe lnOutage_frequency Natural_disaster festival weekend  if group==1,  absorb(County#YM) vce(cluster County)
 est store m10
-esttab  m1 m2 m3 m4 m5 m6 m7 m8 m9 m10  using tables6.csv, scalars(r2 r2_w r2_o r2_b)  pr2  se replace nogap  b(%9.4f) star(* 0.10 ** 0.05 *** 0.01)
-***************table s7
+esttab  m1 m2 m3 m4 m5 m6 m7 m8 m9 m10  using tables7.csv, scalars(r2 r2_w r2_o r2_b)  pr2  se replace nogap  b(%9.4f) star(* 0.10 ** 0.05 *** 0.01)
+***************table s8
 reghdfe lnOutage_duration_unplanned Natural_disaster festival weekend , absorb(County#YM) vce(cluster County)
 est store m1
 reghdfe lnOutage_duration_planned Natural_disaster festival weekend , absorb(County#YM) vce(cluster County)
@@ -139,8 +162,8 @@ reghdfe lnOutage_duration Natural_disaster festival weekend  if group==0,  absor
 est store m9
 reghdfe lnOutage_duration Natural_disaster festival weekend  if group==1,  absorb(County#YM) vce(cluster County)
 est store m10
-esttab m1 m2 m3 m4 m5 m6 m7 m8 m9 m10 using tables7.csv, scalars(r2 r2_w r2_o r2_b)  pr2  se replace nogap  b(%9.4f) star(* 0.10 ** 0.05 *** 0.01)
-*******table s8
+esttab m1 m2 m3 m4 m5 m6 m7 m8 m9 m10 using tables8.csv, scalars(r2 r2_w r2_o r2_b)  pr2  se replace nogap  b(%9.4f) star(* 0.10 ** 0.05 *** 0.01)
+*******table s9
 
 reghdfe lnOutage_frequency_unplanned Natural_disaster festival weekend, absorb(County#YM) vce(cluster County)
 scalar coef1 = _b[Natural_disaster]
@@ -239,7 +262,7 @@ scalar se_diff = sqrt(se1^2 + se2^2)
 scalar t = diff / se_diff
 scalar df = e(df_r)
 display "t = " t ", diff = " diff ", p-value = " 2 * ttail(df, abs(t))
-******table s9
+******table s10
 use "data_natural.dta",clear
 foreach var of varlist  Outage_frequency Outage_frequency_unplanned  Outage_frequency_planned Outage_frequency_0_6h Outage_frequency_6h {
 gen ln`var'=ln((`var'+1)/pop)
@@ -259,7 +282,7 @@ bdiff, group(summer) model(reghdfe lnOutage_frequency Natural_disaster festival 
 bdiff, group(group) model(reghdfe lnOutage_duration Natural_disaster festival weekend, absorb(County#YM) vce(cluster County)) reps(100) detail
 bdiff, group(north) model(reghdfe lnOutage_duration Natural_disaster festival weekend, absorb(County#YM) vce(cluster County)) reps(100) detail
 bdiff, group(summer) model(reghdfe lnOutage_duration Natural_disaster festival weekend, absorb(County#YM) vce(cluster County)) reps(100) detail
-*****Table s10
+*****Table s11
 reghdfe lnOutage_frequency c.Natural_disaster##i.poverty festival weekend , absorb(County#YM) vce(cluster County)
 est store m1
 reghdfe lnOutage_duration c.Natural_disaster##i.poverty festival weekend , absorb(County#YM) vce(cluster County)
@@ -278,8 +301,8 @@ reghdfe lnOutage_frequency c.Natural_disaster##i.poverty_2 festival weekend , ab
 est store m5
 reghdfe lnOutage_duration c.Natural_disaster##i.poverty_2 festival weekend , absorb(County#YM) vce(cluster County)
 est store m6
-esttab m1 m2 m3 m4 m5 m6 using tables9.csv,scalars(r2 r2_w r2_o r2_b) pr2  se  replace nogap  b(%9.4f) star(* 0.10 ** 0.05 *** 0.01)
-*************Table S11 
+esttab m1 m2 m3 m4 m5 m6 using tables11.csv,scalars(r2 r2_w r2_o r2_b) pr2  se  replace nogap  b(%9.4f) star(* 0.10 ** 0.05 *** 0.01)
+*************Table S12 
 use "data_natural.dta",clear
 foreach var of varlist  Outage_frequency Outage_frequency_unplanned  Outage_frequency_planned Outage_frequency_0_6h Outage_frequency_6h {
 gen ln`var'=ln((`var'+1)/pop)
@@ -295,8 +318,8 @@ reghdfe lnOutage_frequency c.Natural_disaster##c.Labor festival weekend , absorb
 est store m3
 reghdfe lnOutage_duration c.Natural_disaster##c.Labor festival weekend , absorb(County#YM) vce(cluster County)
 est store m4
-esttab m1 m2 m3 m4 using tables11.csv, scalars(r2 r2_w r2_o r2_b)  pr2  se replace nogap  b(%9.4f) star(* 0.10 ** 0.05 *** 0.01)
-**************************Table S12 Empirical p values
+esttab m1 m2 m3 m4 using tables12.csv, scalars(r2 r2_w r2_o r2_b)  pr2  se replace nogap  b(%9.4f) star(* 0.10 ** 0.05 *** 0.01)
+**************************Table S13 Empirical p values
 use "data_natural.dta",clear
 foreach var of varlist  Outage_frequency Outage_frequency_unplanned  Outage_frequency_planned Outage_frequency_0_6h Outage_frequency_6h {
 gen ln`var'=ln((`var'+1)/pop)
