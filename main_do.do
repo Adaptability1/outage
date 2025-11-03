@@ -65,6 +65,9 @@ gen ln`var'=ln((`var'+1)/pop)
 foreach var of varlist  Outage_duration Outage_duration_6h  Outage_duration_unplanned  Outage_duration_planned  Outage_duration_0_6h  {
 gen ln`var'=ln(`var'+1)
 }
+foreach var of varlist  Natural_disaster{
+bys County :egen sum`var'=sum(`var')
+}
 gen group=0 if sumNatural_disaster>0 & sumNatural_disaster<=10
 replace group=1 if sumNatural_disaster>10 
 reghdfe lnOutage_frequency_unplanned Natural_disaster festival weekend if poverty==1, absorb(County#YM) vce(cluster County)
@@ -538,3 +541,4 @@ bar(5, fcolor(255 136 132 %40) lcolor(255 136 132 %40)) ///
 bar(6, fcolor(230 67 67 %40) lcolor(230 67 67 %60)) ///
 ytitle(Variable importance, size(5)) legend(order(6 "Heatwave" 5 "Wildfire" 4 "Geo hazard" 3 "Cold wave" 2 "Rainstorm" 1 "Strong wind") pos(3) rows(12) size(4)  symxsize(8) region(lcolor(white)) stack) bargap(0.3)  title("Outage duration(Shapely values)",size(5)) scheme(plotplain) ylabel(,labsize(*1.3)) graphregion(fcolor(white))
 graph export "figure_f.png",  as(png) replace
+
